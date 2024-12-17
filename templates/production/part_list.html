@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Parça Listesi</h2>
+    
+    {% if user.teammember.team.name == 'assembly' %}
+        <div class="alert alert-info">
+            Montaj ekibi olarak tüm parçaları görebilirsiniz.
+        </div>
+    {% endif %}
+
+    <div class="mb-3">
+        <a href="{% url 'part_create' %}" class="btn btn-primary">Yeni Parça Üret</a>
+    </div>
+
+    <table class="table table-striped" id="partsTable">
+        <thead>
+            <tr>
+                <th>Seri No</th>
+                <th>UAV Tipi</th>
+                <th>Parça Tipi</th>
+                <th>Üretim Tarihi</th>
+                <th>Durum</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for part in parts %}
+            <tr>
+                <td>{{ part.serial_number }}</td>
+                <td>{{ part.get_uav_type_display }}</td>
+                <td>{{ part.get_type_display }}</td>
+                <td>{{ part.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if part.is_used %}
+                        <span class="badge bg-success">Kullanıldı</span>
+                    {% else %}
+                        <span class="badge bg-warning">Stokta</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not part.is_used %}
+                        <form action="{% url 'part_delete' part.id %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu parçayı geri dönüşüme göndermek istediğinizden emin misiniz?')">
+                                <i class="fas fa-recycle"></i> Geri Dönüşüm
+                            </button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#partsTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json"
+            },
+            "order": [[3, "desc"]]  // Üretim tarihine göre sırala
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %}
