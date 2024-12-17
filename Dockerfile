@@ -5,9 +5,20 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    netcat-traditional \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Make the entrypoint script executable and fix line endings
+RUN chmod +x /app/docker-entrypoint.sh && \
+    sed -i 's/\r$//g' /app/docker-entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

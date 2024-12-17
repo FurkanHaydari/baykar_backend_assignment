@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
 from django.contrib import messages
-from django.db.models import Count
 from .models import Part, UAV
 from accounts.models import TeamMember
 from .forms import PartForm, UAVForm
@@ -45,7 +45,7 @@ def home(request):
             produced_by=team_member
         ).aggregate(
             total=Count('id'),
-            used=Count('id', filter=models.Q(is_used=True))
+            used=Count('id', filter=Q(is_used=True))
         )
     
     return render(request, 'production/home.html', context)
