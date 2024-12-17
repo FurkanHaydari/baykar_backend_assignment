@@ -1,15 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Count
 from .models import Part, UAV
 from accounts.models import TeamMember
 from .forms import PartForm, UAVForm
+from .utils import check_inventory_status
 
 @login_required
 def home(request):
     team_member = get_object_or_404(TeamMember, user=request.user)
     context = {
         'team_member': team_member,
+        'inventory_warnings': check_inventory_status(),
     }
     
     if team_member.team.name == 'assembly':
@@ -20,10 +23,29 @@ def home(request):
             'tails': Part.objects.filter(type='tail', is_used=False),
             'avionics': Part.objects.filter(type='avionics', is_used=False),
         }
+        
+        # Her UAV tipi için parça sayılarını hesapla
+        context['part_counts'] = {}
+        for uav_type, _ in UAV.UAV_TYPES:
+            context['part_counts'][uav_type] = {
+                'wing': Part.objects.filter(type='wing', uav_type=uav_type, is_used=False).count(),
+                'body': Part.objects.filter(type='body', uav_type=uav_type, is_used=False).count(),
+                'tail': Part.objects.filter(type='tail', uav_type=uav_type, is_used=False).count(),
+                'avionics': Part.objects.filter(type='avionics', uav_type=uav_type, is_used=False).count(),
+            }
     else:
         context['parts'] = Part.objects.filter(
             type=team_member.team.name,
             produced_by=team_member
+        )
+        
+        # Parça kullanım istatistikleri
+        context['part_stats'] = Part.objects.filter(
+            type=team_member.team.name,
+            produced_by=team_member
+        ).aggregate(
+            total=Count('id'),
+            used=Count('id', filter=models.Q(is_used=True))
         )
     
     return render(request, 'production/home.html', context)
