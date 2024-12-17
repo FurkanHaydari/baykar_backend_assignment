@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Assembled UAVs</h2>
+        <table class="table table-striped" id="uavTable">
+            <thead>
+                <tr>
+                    <th>Serial Number</th>
+                    <th>Type</th>
+                    <th>Assembly Date</th>
+                    <th>Assembled By</th>
+                    <th>Parts</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for uav in uavs %}
+                <tr>
+                    <td>{{ uav.serial_number }}</td>
+                    <td>{{ uav.get_type_display }}</td>
+                    <td>{{ uav.assembly_date }}</td>
+                    <td>{{ uav.assembled_by.user.username }}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#partsModal{{ uav.id }}">
+                            View Parts
+                        </button>
+                    </td>
+                </tr>
+                
+                <!-- Parts Modal -->
+                <div class="modal fade" id="partsModal{{ uav.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Parts - {{ uav.get_type_display }} ({{ uav.serial_number }})</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <ul class="list-group">
+                                    <li class="list-group-item">
+                                        <strong>Wing:</strong> {{ uav.wing.serial_number }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Body:</strong> {{ uav.body.serial_number }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Tail:</strong> {{ uav.tail.serial_number }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Avionics:</strong> {{ uav.avionics.serial_number }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#uavTable').DataTable();
+    });
+</script>
+{% endblock %}

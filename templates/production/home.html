@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Welcome, {{ user.username }}</h2>
+<p>Team: {{ team_member.team.get_name_display }}</p>
+
+{% if team_member.team.name == 'assembly' %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3>Available Parts</h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Wings</h5>
+                            <p class="card-text">{{ available_parts.wings.count }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Bodies</h5>
+                            <p class="card-text">{{ available_parts.bodies.count }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Tails</h5>
+                            <p class="card-text">{{ available_parts.tails.count }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Avionics</h5>
+                            <p class="card-text">{{ available_parts.avionics.count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'uav_create' %}" class="btn btn-primary">Assemble New UAV</a>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3>Your Parts</h3>
+            <a href="{% url 'part_create' %}" class="btn btn-primary mb-3">Create New Part</a>
+            <table class="table table-striped" id="partsTable">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>UAV Type</th>
+                        <th>Production Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for part in parts %}
+                    <tr>
+                        <td>{{ part.serial_number }}</td>
+                        <td>{{ part.get_uav_type_display }}</td>
+                        <td>{{ part.production_date }}</td>
+                        <td>{% if part.is_used %}Used{% else %}Available{% endif %}</td>
+                        <td>
+                            {% if not part.is_used %}
+                            <form method="post" action="{% url 'part_delete' part.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Recycle</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#partsTable').DataTable();
+    });
+</script>
+{% endblock %}
