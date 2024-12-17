@@ -32,7 +32,7 @@
                 <td>{{ part.serial_number }}</td>
                 <td>{{ part.get_uav_type_display }}</td>
                 <td>{{ part.get_type_display }}</td>
-                <td>{{ part.created_at|date:"d.m.Y H:i" }}</td>
+                <td data-order="{{ part.created_at|date:'Y-m-d H:i:s' }}">{{ part.production_date|date:"d.m.Y H:i" }}</td>
                 <td>
                     {% if part.is_used %}
                         <span class="badge bg-success">Kullanıldı</span>
