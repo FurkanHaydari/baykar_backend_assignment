@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
 <div class="container mt-4">
@@ -12,7 +11,9 @@
     {% endif %}
 
     <div class="mb-3">
-        <a href="{% url 'part_create' %}" class="btn btn-primary">Yeni Parça Üret</a>
+        {% if not user.teammember.team.name == 'assembly' %}
+            <a href="{% url 'part_create' %}" class="btn btn-primary">Yeni Parça Üret</a>
+        {% endif %}
     </div>
 
     <table class="table table-striped" id="partsTable">
@@ -22,51 +23,66 @@
                 <th>UAV Tipi</th>
                 <th>Parça Tipi</th>
                 <th>Üretim Tarihi</th>
+                <th>Üretici</th>
                 <th>Durum</th>
-                <th>İşlemler</th>
+                {% if not user.teammember.team.name == 'assembly' %}
+                    <th>İşlemler</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
-            {% for part in parts %}
-            <tr>
-                <td>{{ part.serial_number }}</td>
-                <td>{{ part.get_uav_type_display }}</td>
-                <td>{{ part.get_type_display }}</td>
-                <td data-order="{{ part.created_at|date:'Y-m-d H:i:s' }}">{{ part.production_date|date:"d.m.Y H:i" }}</td>
-                <td>
-                    {% if part.is_used %}
-                        <span class="badge bg-success">Kullanıldı</span>
-                    {% else %}
-                        <span class="badge bg-warning">Stokta</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if not part.is_used %}
-                        <form action="{% url 'part_delete' part.id %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu parçayı geri dönüşüme göndermek istediğinizden emin misiniz?')">
-                                <i class="fas fa-recycle"></i> Geri Dönüşüm
-                            </button>
-                        </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
         </tbody>
     </table>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
     $(document).ready(function() {
+        var columns = [
+            { data: 'serial_number' },
+            { data: 'uav_type' },
+            { data: 'type' },
+            { data: 'production_date' },
+            { data: 'produced_by' },
+            { 
+                data: 'is_used',
+                render: function(data, type, row) {
+                    return data ? '<span class="badge bg-success">Kullanıldı</span>' 
+                              : '<span class="badge bg-warning">Stokta</span>';
+                }
+            }
+        ];
+
+        {% if not user.teammember.team.name == 'assembly' %}
+            columns.push({
+                data: null,
+                render: function(data, type, row) {
+                    if (!row.is_used) {
+                        return '<form method="post" action="/production/parts/' + row.id + '/delete/" style="display: inline;">' +
+                               '{% csrf_token %}' +
+                               '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Bu parçayı geri dönüşüme göndermek istediğinizden emin misiniz?\')">' +
+                               '<i class="fas fa-recycle"></i> Geri Dönüşüm</button></form>';
+                    }
+                    return '';
+                }
+            });
+        {% endif %}
+
         $('#partsTable').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json"
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/api/parts/datatable_data/',
+                type: 'GET',
+                dataSrc: 'data'
             },
-            "order": [[3, "desc"]]  // Üretim tarihine göre sırala
+            columns: columns,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
+            },
+            order: [[3, 'desc']]  // Üretim tarihine göre sırala
         });
     });
 </script>
-{% endblock %}
-
 {% endblock %}

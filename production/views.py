@@ -22,14 +22,6 @@ def home(request):
     }
     
     if team_member.team.name == 'assembly':
-        context['uavs'] = UAV.objects.all()
-        context['available_parts'] = {
-            'wings': Part.objects.filter(type='wing', is_used=False),
-            'bodies': Part.objects.filter(type='body', is_used=False),
-            'tails': Part.objects.filter(type='tail', is_used=False),
-            'avionics': Part.objects.filter(type='avionics', is_used=False),
-        }
-        
         # Her UAV tipi için parça sayılarını hesapla
         context['part_counts'] = {}
         for uav_type, _ in UAV.UAV_TYPES:
@@ -39,28 +31,13 @@ def home(request):
                 'tail': Part.objects.filter(type='tail', uav_type=uav_type, is_used=False).count(),
                 'avionics': Part.objects.filter(type='avionics', uav_type=uav_type, is_used=False).count(),
             }
-    else:
-        context['parts'] = Part.objects.filter(
-            type=team_member.team.name,
-            produced_by=team_member
-        )
-        
-        # Parça kullanım istatistikleri
-        context['part_stats'] = Part.objects.filter(
-            type=team_member.team.name,
-            produced_by=team_member
-        ).aggregate(
-            total=Count('id'),
-            used=Count('id', filter=Q(is_used=True))
-        )
     
     return render(request, 'production/home.html', context)
 
 @login_required
 def part_list(request):
     team_member = get_object_or_404(TeamMember, user=request.user)
-    parts = Part.objects.filter(type=team_member.team.name)
-    return render(request, 'production/part_list.html', {'parts': parts})
+    return render(request, 'production/part_list.html', {'team_member': team_member})
 
 @login_required
 def part_create(request):
@@ -121,5 +98,4 @@ def uav_list(request):
         messages.error(request, 'Only assembly team members can view UAVs.')
         return redirect('home')
     
-    uavs = UAV.objects.all()
-    return render(request, 'production/uav_list.html', {'uavs': uavs})
+    return render(request, 'production/uav_list.html')

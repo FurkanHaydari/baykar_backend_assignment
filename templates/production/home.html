@@ -57,19 +57,10 @@
 {% else %}
     <div class="row mt-4">
         <div class="col-md-12">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Parça İstatistikleri</h4>
-                </div>
-                <div class="card-body">
-                    <p>Toplam Üretilen: {{ part_stats.total }}</p>
-                    <p>Kullanılan: {{ part_stats.used }}</p>
-                    <p>Stokta: {{ part_stats.total|sub:part_stats.used }}</p>
-                </div>
+            <h3>Ürettiğiniz Parçalar</h3>
+            <div class="mb-3">
+                <a href="{% url 'part_create' %}" class="btn btn-primary">Yeni Parça Üret</a>
             </div>
-
-            <h3>Parçalarınız</h3>
-            <a href="{% url 'part_create' %}" class="btn btn-primary mb-3">Yeni Parça Üret</a>
             <table class="table table-striped" id="partsTable">
                 <thead>
                     <tr>
@@ -81,22 +72,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for part in parts %}
-                    <tr>
-                        <td>{{ part.serial_number }}</td>
-                        <td>{{ part.get_uav_type_display }}</td>
-                        <td>{{ part.production_date }}</td>
-                        <td>{% if part.is_used %}Kullanıldı{% else %}Stokta{% endif %}</td>
-                        <td>
-                            {% if not part.is_used %}
-                            <form method="post" action="{% url 'part_delete' part.pk %}" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm">Geri Dönüşüm</button>
-                            </form>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -107,11 +82,45 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        $('#partsTable').DataTable({
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
-            }
-        });
+        {% if not team_member.team.name == 'assembly' %}
+            $('#partsTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '/api/parts/datatable_data/',
+                    type: 'GET',
+                    dataSrc: 'data'
+                },
+                columns: [
+                    { data: 'serial_number' },
+                    { data: 'uav_type' },
+                    { data: 'production_date' },
+                    { 
+                        data: 'is_used',
+                        render: function(data, type, row) {
+                            return data ? '<span class="badge bg-success">Kullanıldı</span>' 
+                                      : '<span class="badge bg-warning">Stokta</span>';
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            if (!row.is_used) {
+                                return '<form method="post" action="/production/parts/' + row.id + '/delete/" style="display: inline;">' +
+                                       '{% csrf_token %}' +
+                                       '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Bu parçayı geri dönüşüme göndermek istediğinizden emin misiniz?\')">' +
+                                       '<i class="fas fa-recycle"></i> Geri Dönüşüm</button></form>';
+                            }
+                            return '';
+                        }
+                    }
+                ],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
+                },
+                order: [[2, 'desc']]  // Üretim tarihine göre sırala
+            });
+        {% endif %}
     });
 </script>
 {% endblock %}

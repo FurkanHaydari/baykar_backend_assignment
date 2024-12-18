@@ -15,49 +15,36 @@
                 </tr>
             </thead>
             <tbody>
-                {% for uav in uavs %}
-                <tr>
-                    <td>{{ uav.serial_number }}</td>
-                    <td>{{ uav.get_type_display }}</td>
-                    <td>{{ uav.assembly_date }}</td>
-                    <td>{{ uav.assembled_by.user.username }}</td>
-                    <td>
-                        <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#partsModal{{ uav.id }}">
-                            View Parts
-                        </button>
-                    </td>
-                </tr>
-                
-                <!-- Parts Modal -->
-                <div class="modal fade" id="partsModal{{ uav.id }}" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Parts - {{ uav.get_type_display }} ({{ uav.serial_number }})</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <ul class="list-group">
-                                    <li class="list-group-item">
-                                        <strong>Wing:</strong> {{ uav.wing.serial_number }}
-                                    </li>
-                                    <li class="list-group-item">
-                                        <strong>Body:</strong> {{ uav.body.serial_number }}
-                                    </li>
-                                    <li class="list-group-item">
-                                        <strong>Tail:</strong> {{ uav.tail.serial_number }}
-                                    </li>
-                                    <li class="list-group-item">
-                                        <strong>Avionics:</strong> {{ uav.avionics.serial_number }}
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Parts Modal Template -->
+<div class="modal fade" id="partsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Parts Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <strong>Wing:</strong> <span id="wingPart"></span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Body:</strong> <span id="bodyPart"></span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Tail:</strong> <span id="tailPart"></span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Avionics:</strong> <span id="avionicsPart"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -65,7 +52,41 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        $('#uavTable').DataTable();
+        var table = $('#uavTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/api/uavs/datatable_data/',
+                type: 'GET',
+                dataSrc: 'data'
+            },
+            columns: [
+                { data: 'serial_number' },
+                { data: 'type' },
+                { data: 'assembly_date' },
+                { data: 'assembled_by' },
+                {
+                    data: null,
+                    render: function(data, type, row) {
+                        return '<button class="btn btn-info btn-sm" onclick="showParts(' + 
+                               JSON.stringify(row.parts) + 
+                               ')">View Parts</button>';
+                    }
+                }
+            ],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
+            }
+        });
     });
+
+    function showParts(parts) {
+        $('#wingPart').text(parts.wing);
+        $('#bodyPart').text(parts.body);
+        $('#tailPart').text(parts.tail);
+        $('#avionicsPart').text(parts.avionics);
+        var modal = new bootstrap.Modal(document.getElementById('partsModal'));
+        modal.show();
+    }
 </script>
 {% endblock %}
