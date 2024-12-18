@@ -4,6 +4,11 @@
 <div class="row">
     <div class="col-md-12">
         <h2>Assembled UAVs</h2>
+        <div class="mb-3">
+            <button class="btn btn-primary" onclick="showCreateModal()">
+                <i class="fas fa-plus"></i> Yeni UAV Oluştur
+            </button>
+        </div>
         <table class="table table-striped" id="uavTable">
             <thead>
                 <tr>
@@ -20,29 +25,98 @@
     </div>
 </div>
 
-<!-- Parts Modal Template -->
-<div class="modal fade" id="partsModal" tabindex="-1">
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Parts Details</h5>
+                <h5 class="modal-title">Yeni UAV Oluştur</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <ul class="list-group">
-                    <li class="list-group-item">
-                        <strong>Wing:</strong> <span id="wingPart"></span>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Body:</strong> <span id="bodyPart"></span>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Tail:</strong> <span id="tailPart"></span>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Avionics:</strong> <span id="avionicsPart"></span>
-                    </li>
-                </ul>
+                <form id="uavForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="uavType" class="form-label">UAV Tipi</label>
+                        <select class="form-select" id="uavType" name="type" required>
+                            <option value="">Seçiniz...</option>
+                            <option value="tb2">TB2</option>
+                            <option value="tb3">TB3</option>
+                            <option value="akinci">AKINCI</option>
+                            <option value="kizilelma">KIZILELMA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="serialNumber" class="form-label">Seri Numarası</label>
+                        <input type="text" class="form-control" id="serialNumber" name="serial_number" required>
+                    </div>
+                    <div id="partSelections" style="display: none;">
+                        <div class="mb-3">
+                            <label for="wingPart" class="form-label">Kanat</label>
+                            <select class="form-select part-select" id="wingPart" name="wing_id"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="bodyPart" class="form-label">Gövde</label>
+                            <select class="form-select part-select" id="bodyPart" name="body_id"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tailPart" class="form-label">Kuyruk</label>
+                            <select class="form-select part-select" id="tailPart" name="tail_id"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="avionicsPart" class="form-label">Aviyonik</label>
+                            <select class="form-select part-select" id="avionicsPart" name="avionics_id"></select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="createUAV()">Oluştur</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-dialog {
+        display: flex;
+        align-items: center;
+        min-height: calc(100% - 1rem);
+    }
+    
+    @media (min-width: 576px) {
+        .modal-dialog {
+            max-width: 800px;
+            margin: 1.75rem auto;
+        }
+    }
+</style>
+
+<!-- Parts Modal -->
+<div class="modal fade" id="partsModal" tabindex="-1" aria-labelledby="partsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="partsModalLabel">UAV Parçaları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                                <th>Parça Tipi</th>
+                                <th>Seri No</th>
+                                <th>Üretim Tarihi</th>
+                                <th>Üreten</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partsTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Kapat</button>
             </div>
         </div>
     </div>
@@ -66,26 +140,163 @@
                 { data: 'assembly_date' },
                 { data: 'assembled_by' },
                 {
-                    data: null,
-                    render: function(data, type, row) {
-                        return '<button class="btn btn-info btn-sm" onclick="showParts(' + 
-                               JSON.stringify(row.parts) + 
-                               ')">View Parts</button>';
+                    data: 'id',
+                    render: function(data) {
+                        return `<button class="btn btn-info btn-sm" onclick="viewParts(${data})">Parçaları Göster</button>`;
                     }
                 }
             ],
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
+            order: [[0, 'desc']]
+        });
+
+        // UAV tipi seçildiğinde parça seçimlerini göster
+        $('#uavType').change(function() {
+            if ($(this).val()) {
+                $('#partSelections').show();
+                initializeSelect2();
+            } else {
+                $('#partSelections').hide();
             }
         });
     });
 
-    function showParts(parts) {
-        $('#wingPart').text(parts.wing);
-        $('#bodyPart').text(parts.body);
-        $('#tailPart').text(parts.tail);
-        $('#avionicsPart').text(parts.avionics);
-        var modal = new bootstrap.Modal(document.getElementById('partsModal'));
+    function initializeSelect2() {
+        $('.part-select').each(function() {
+            var $select = $(this);
+            var partType = $select.attr('name').split('_')[0];
+
+            $select.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Parça seçiniz...',
+                allowClear: true,
+                ajax: {
+                    url: '/api/uavs/available_parts/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        var uavType = $('#uavType').val();
+                        if (!uavType) {
+                            return false;
+                        }
+                        return {
+                            search: params.term,
+                            page: params.page || 1,
+                            page_size: 10,
+                            uav_type: uavType,
+                            part_type: partType
+                        };
+                    },
+                    processResults: function(data) {
+                        if (!data.results) {
+                            return { results: [] };
+                        }
+                        return {
+                            results: data.results,
+                            pagination: data.pagination
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            }).on('select2:opening', function(e) {
+                var uavType = $('#uavType').val();
+                if (!uavType) {
+                    e.preventDefault();
+                    toastr.warning('Önce UAV tipini seçmelisiniz');
+                }
+            });
+        });
+    }
+
+    function createUAV() {
+        var formData = {
+            type: $('#uavType').val(),
+            serial_number: $('#serialNumber').val(),
+            wing_id: $('#wingPart').val(),
+            body_id: $('#bodyPart').val(),
+            tail_id: $('#tailPart').val(),
+            avionics_id: $('#avionicsPart').val()
+        };
+
+        // Boş alan kontrolü
+        for (var key in formData) {
+            if (!formData[key]) {
+                toastr.error('Lütfen tüm alanları doldurun');
+                return;
+            }
+        }
+
+        $.ajax({
+            url: '/api/uavs/',
+            type: 'POST',
+            data: JSON.stringify(formData),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            success: function(response) {
+                $('#createModal').modal('hide');
+                $('#uavTable').DataTable().ajax.reload();
+                toastr.success('UAV başarıyla oluşturuldu');
+            },
+            error: function(xhr) {
+                var error = xhr.responseJSON ? xhr.responseJSON.error : 'Bir hata oluştu';
+                toastr.error(error);
+            }
+        });
+    }
+
+    function viewParts(uavId) {
+        // Modal'ı başlat
+        const partsModal = new bootstrap.Modal(document.getElementById('partsModal'), {
+            keyboard: false
+        });
+
+        $.ajax({
+            url: `/api/uavs/${uavId}/parts/`,
+            type: 'GET',
+            success: function(response) {
+                var tbody = $('#partsTableBody');
+                tbody.empty();
+
+                // Her parça tipi için satır ekle
+                Object.entries(response).forEach(([type, part]) => {
+                    // Üretici bilgisi için güvenli kontrol
+                    let producerName = '-';
+                    if (part && part.produced_by && part.produced_by.user) {
+                        producerName = part.produced_by.user.username;
+                    }
+
+                    var row = `
+                        <tr>
+                            <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                            <td>${part.serial_number || '-'}</td>
+                            <td>${part.production_date ? new Date(part.production_date).toLocaleString('tr-TR') : '-'}</td>
+                            <td>${producerName}</td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+
+                // Modal'ı göster
+                partsModal.show();
+            },
+            error: function(xhr) {
+                var error = xhr.responseJSON ? xhr.responseJSON.error : 'Parçalar yüklenirken bir hata oluştu';
+                toastr.error(error);
+            }
+        });
+    }
+
+    function showCreateModal() {
+        // Formu sıfırla
+        $('#uavForm')[0].reset();
+        $('#partSelections').hide();
+        $('.part-select').val(null).trigger('change');
+        
+        // Modalı göster
+        var modal = new bootstrap.Modal(document.getElementById('createModal'));
         modal.show();
     }
 </script>
