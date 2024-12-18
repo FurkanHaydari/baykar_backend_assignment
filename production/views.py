@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.contrib import messages
+from django.urls import reverse
 from .models import Part, UAV
 from accounts.models import TeamMember
 from .forms import PartForm, UAVForm
@@ -9,6 +10,11 @@ from .utils import check_inventory_status
 
 @login_required
 def home(request):
+    # Admin/staff kullanıcıları direkt admin paneline yönlendir
+    if request.user.is_staff:
+        return redirect(reverse('admin:index'))
+
+    # Normal kullanıcılar için mevcut işlemler
     team_member = get_object_or_404(TeamMember, user=request.user)
     context = {
         'team_member': team_member,

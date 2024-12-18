@@ -1,0 +1,156 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | BAYKAR - UAV Üretim Yönetim Sistemi{% endblock %}
+
+{% block extrastyle %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #2c3e50;
+    --secondary: #34495e;
+    --accent: #3498db;
+  }
+
+  #header {
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 40px;
+  }
+
+  #branding {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  #branding h1 {
+    color: #fff;
+    margin: 0;
+  }
+
+  .company-logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    letter-spacing: 3px;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+
+  div.breadcrumbs {
+    background: var(--secondary);
+  }
+
+  .module h2, .module caption, .inline-group h2 {
+    background: var(--secondary);
+  }
+
+  .button.default, input[type=submit].default {
+    background: var(--accent);
+  }
+
+  /* Badge Styles */
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .status-badge.success {
+    background: #27ae60;
+  }
+
+  .status-badge.warning {
+    background: #f1c40f;
+    color: #2c3e50;
+  }
+
+  .status-badge.info {
+    background: #3498db;
+  }
+
+  /* Table Styles */
+  #changelist table {
+    border: 1px solid #eee;
+  }
+
+  #changelist table tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+  }
+
+  /* Custom Table */
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+  }
+
+  .custom-table th {
+    background: #f8f9fa;
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    font-weight: 500;
+  }
+
+  .custom-table td {
+    padding: 8px;
+    border: 1px solid #dee2e6;
+  }
+
+  .custom-table tr:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+  }
+
+  /* Message Styles */
+  .messagelist li {
+    padding: 10px 15px;
+    margin: 0 0 10px 0;
+    border-radius: 3px;
+    color: #fff;
+  }
+
+  .messagelist li.success {
+    background: #27ae60;
+  }
+
+  .messagelist li.warning {
+    background: #f1c40f;
+    color: #2c3e50;
+  }
+
+  .messagelist li.error {
+    background: #e74c3c;
+  }
+
+  /* Footer Styles */
+  #footer {
+    padding: 20px;
+    text-align: center;
+    background: var(--primary);
+    color: #fff;
+  }
+</style>
+{% endblock %}
+
+{% block branding %}
+<div id="branding">
+  <h1 id="site-name">
+    <i class="fas fa-plane"></i>
+    <a href="{% url 'admin:index' %}">UAV Üretim Yönetim Sistemi</a>
+  </h1>
+  <div class="company-logo">BAYKAR</div>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block footer %}
+<div id="footer">
+  <strong>BAYKAR</strong> - İnsansız Hava Aracı Üretim Yönetim Sistemi &copy; {% now "Y" %}
+</div>
+{% endblock %}

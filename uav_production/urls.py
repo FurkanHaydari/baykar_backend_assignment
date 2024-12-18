@@ -2,9 +2,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+
+# Admin site özelleştirmeleri
+admin.site.site_header = 'UAV Üretim Yönetim Paneli'
+admin.site.site_title = 'UAV Üretim Admin'
+admin.site.index_title = 'Yönetim Paneli'
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -20,7 +27,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),  # staff_member_required zaten admin içinde var
     path('', include('production.urls')),
     path('accounts/', include('accounts.urls')),
     path('api/', include('production.api.urls')),
