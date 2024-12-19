@@ -1,9 +1,11 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from accounts.models import Team, TeamMember
-from production.models import Part
+from production.models import Part, UAV
 import random
 import string
+from django.utils import timezone
+from datetime import timedelta
 
 class Command(BaseCommand):
     help = 'Populates the database with initial data'
@@ -97,5 +99,53 @@ class Command(BaseCommand):
                     ]
                     Part.objects.bulk_create(parts)
                     self.stdout.write(f'Created {parts_to_create} {part_type} parts for {uav_type}')
+
+        # UAV'ları oluştur
+        self.stdout.write('Creating UAVs...')
+        assembly_team = teams['assembly']
+        assembly_member = TeamMember.objects.get(team=assembly_team)
+
+        # Her UAV tipi için 25'er adet UAV oluştur (toplam 100 UAV)
+        for uav_type in uav_types:
+            existing_uavs = UAV.objects.filter(type=uav_type).count()
+            uavs_to_create = 20 - existing_uavs
+
+            if uavs_to_create > 0:
+                for _ in range(uavs_to_create):
+                    # Her parça tipinden kullanılmamış bir parça seç
+                    parts = {}
+                    for part_type in part_types:
+                        # Her parça tipi için doğru related name'i kullan
+                        related_names = {
+                            'wing': 'uav_wing',
+                            'body': 'uav_body',
+                            'tail': 'uav_tail',
+                            'avionics': 'uav_avionics'
+                        }
+                        
+                        part = Part.objects.filter(
+                            type=part_type,
+                            uav_type=uav_type,
+                            **{f"{related_names[part_type]}__isnull": True}
+                        ).first()
+                        
+                        if part:
+                            # UAV modelindeki field isimlerini kullan
+                            parts[part_type] = part
+
+                    # Eğer tüm parça tipleri mevcutsa UAV oluştur
+                    if len(parts) == len(part_types):
+                        # Rastgele bir tarih oluştur (son 30 gün içinde)
+                        random_days = random.randint(0, 30)
+                        assembly_date = timezone.now() - timedelta(days=random_days)
+                        
+                        uav = UAV.objects.create(
+                            type=uav_type,
+                            serial_number=f'{uav_type.upper()}_UAV_{self.generate_serial_number()}',
+                            assembled_by=assembly_member,
+                            assembly_date=assembly_date,
+                            **parts
+                        )
+                        self.stdout.write(f'Created UAV: {uav.serial_number}')
 
         self.stdout.write(self.style.SUCCESS('Successfully populated the database with initial data'))
