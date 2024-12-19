@@ -170,6 +170,8 @@
                 width: '100%',
                 placeholder: 'Parça seçiniz...',
                 allowClear: true,
+                minimumInputLength: 0,
+                dropdownParent: $('#createModal'),
                 ajax: {
                     url: '/api/uavs/available_parts/',
                     dataType: 'json',
@@ -180,7 +182,7 @@
                             return false;
                         }
                         return {
-                            search: params.term,
+                            search: params.term || '',
                             page: params.page || 1,
                             page_size: 10,
                             uav_type: uavType,
@@ -188,22 +190,22 @@
                         };
                     },
                     processResults: function(data) {
-                        if (!data.results) {
-                            return { results: [] };
-                        }
                         return {
-                            results: data.results,
-                            pagination: data.pagination
+                            results: data.results || [],
+                            pagination: {
+                                more: data.pagination && data.pagination.more
+                            }
                         };
                     },
                     cache: true
                 },
-                minimumInputLength: 0
-            }).on('select2:opening', function(e) {
-                var uavType = $('#uavType').val();
-                if (!uavType) {
-                    e.preventDefault();
-                    toastr.warning('Önce UAV tipini seçmelisiniz');
+                language: {
+                    noResults: function() {
+                        return "Sonuç bulunamadı";
+                    },
+                    searching: function() {
+                        return "Aranıyor...";
+                    }
                 }
             });
         });
