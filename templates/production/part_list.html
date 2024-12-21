@@ -71,13 +71,14 @@
 <script>
     $(document).ready(function() {
         var columns = [
-            { data: 'serial_number' },
-            { data: 'uav_type' },
-            { data: 'type' },
-            { data: 'production_date' },
-            { data: 'produced_by' },
+            { data: 'serial_number', orderable: false },
+            { data: 'uav_type', orderable: false },
+            { data: 'type', orderable: false },
+            { data: 'production_date', orderable: false },
+            { data: 'produced_by', orderable: false },
             { 
                 data: 'is_used',
+                orderable: false,
                 render: function(data, type, row) {
                     return data ? '<span class="badge bg-success">Kullanıldı</span>' 
                               : '<span class="badge bg-warning">Stokta</span>';
@@ -88,6 +89,7 @@
         {% if not user.teammember.team.name == 'assembly' %}
             columns.push({
                 data: null,
+                orderable: false,
                 render: function(data, type, row) {
                     if (!row.is_used) {
                         return '<form method="post" action="/production/parts/' + row.id + '/delete/" style="display: inline;">' +
@@ -103,6 +105,7 @@
         $('#partsTable').DataTable({
             processing: true,
             serverSide: true,
+            ordering: false,
             ajax: {
                 url: '/api/parts/datatable_data/',
                 type: 'GET',
@@ -112,7 +115,8 @@
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
             },
-            order: [[3, 'desc']]  // Üretim tarihine göre sırala
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]]
         });
     });
 </script>
