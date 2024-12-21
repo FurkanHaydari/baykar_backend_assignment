@@ -50,6 +50,10 @@ class PartViewSet(viewsets.ModelViewSet):
         
         # Başlangıç queryset
         queryset = self.get_queryset()
+        
+        # Önce stoktakiler, sonra kullanımdakiler
+        queryset = queryset.order_by('is_used', '-production_date')
+        
         total_records = queryset.count()
         
         # Arama filtresi
@@ -63,7 +67,7 @@ class PartViewSet(viewsets.ModelViewSet):
         
         filtered_records = queryset.count()
         
-        # Sıralama ve sayfalama
+        # Sayfalama
         queryset = queryset[start:start + length]
         
         # Veriyi hazırla
