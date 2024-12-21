@@ -6,14 +6,14 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Assemble New UAV</h3>
+                <h3 class="card-title">Yeni İHA Montajı</h3>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
                     {{ form|crispy }}
-                    <button type="submit" class="btn btn-primary">Assemble</button>
-                    <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Montaj</button>
+                    <a href="{% url 'home' %}" class="btn btn-secondary">İptal</a>
                 </form>
             </div>
         </div>
@@ -24,16 +24,16 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
-    // Update available parts based on selected UAV type
+    // Seçilen UAV tipine göre parça seçimlerini güncelle
     $('#id_type').change(function() {
         var uavType = $(this).val();
         
-        // Update each part select field
+        // Her parça seçimini güncelle
         ['wing', 'body', 'tail', 'avionics'].forEach(function(partType) {
             var select = $('#id_' + partType);
             select.find('option:not(:first)').remove();
             
-            // Filter parts by UAV type using AJAX
+            // Ajax ile parçaları al
             $.get('/api/parts/', {
                 type: partType,
                 uav_type: uavType,

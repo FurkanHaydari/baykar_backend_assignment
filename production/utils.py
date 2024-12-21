@@ -70,8 +70,8 @@ def check_inventory_status(current_team=None):
                     if other_parts:
                         warnings.append({
                             'type': 'warning',
-                            'message': f"{uav_type.upper()} için {PART_NAMES[part_type]} parçanız ({count}) yetersiz. " +
-                                     f"Diğer parçalar: {', '.join(other_parts)}"
+                            'message': f"{uav_type.upper()} için ürettiğiniz {PART_NAMES[part_type].lower()} parça adedi ({count}) tam değil. " +
+                                     f"Eşitlemeniz gereken diğer parça sayıları: {', '.join(other_parts)}"
                         })
         
         # Montaj ekibi için İHA üretim durumu

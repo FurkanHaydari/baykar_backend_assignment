@@ -15,9 +15,9 @@ admin.site.index_title = 'Yönetim Paneli'
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="UAV Production API",
+        title="İHA Üretim API",
         default_version='v1',
-        description="API documentation for UAV Production System",
+        description="İHA Üretim Sistemi API Dokumantasyonu",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@uavproduction.local"),
         license=openapi.License(name="BSD License"),

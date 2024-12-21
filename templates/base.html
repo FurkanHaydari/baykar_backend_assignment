@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UAV Production System</title>
+    <title>IHA Üretim Paneli</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <!-- Select2 -->
@@ -17,7 +17,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">UAV Production</a>
+            <a class="navbar-brand" href="{% url 'home' %}">İHA Üretim Paneli</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -25,11 +25,11 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'part_list' %}">Parts</a>
+                            <a class="nav-link" href="{% url 'part_list' %}">Parçalar</a>
                         </li>
                         {% if user.teammember.team.name == 'assembly' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'uav_list' %}">UAVs</a>
+                                <a class="nav-link" href="{% url 'uav_list' %}">İHA'lar</a>
                             </li>
                         {% endif %}
                     {% endif %}
@@ -40,11 +40,11 @@
                             <span class="nav-link">{{ user.teammember.team.get_name_display }}</span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            <a class="nav-link" href="{% url 'logout' %}">Çıkış Yap</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                            <a class="nav-link" href="{% url 'login' %}">Giriş Yap</a>
                         </li>
                     {% endif %}
                 </ul>
