@@ -10,15 +10,15 @@ from .utils import check_inventory_status
 
 @login_required
 def home(request):
-    # Admin/staff kullanıcıları direkt admin paneline yönlendir
-    if request.user.is_staff:
-        return redirect(reverse('admin:index'))
-
-    # Normal kullanıcılar için mevcut işlemler
     team_member = get_object_or_404(TeamMember, user=request.user)
+    team = team_member.team.name if team_member else None
+    
+    # Envanter durumunu kontrol et
+    inventory_status = check_inventory_status(current_team=team)
+    
     context = {
         'team_member': team_member,
-        'inventory_warnings': check_inventory_status(),
+        'inventory_status': inventory_status
     }
     
     if team_member.team.name == 'assembly':
@@ -33,6 +33,20 @@ def home(request):
             }
     
     return render(request, 'production/home.html', context)
+
+@login_required
+def dashboard(request):
+    team_member = get_object_or_404(TeamMember, user=request.user)
+    team = team_member.team.name if team_member else None
+    
+    # Envanter durumunu kontrol et
+    inventory_status = check_inventory_status(current_team=team)
+    
+    context = {
+        'team_member': team_member,
+        'inventory_status': inventory_status
+    }
+    return render(request, 'production/dashboard.html', context)
 
 @login_required
 def part_list(request):
@@ -64,7 +78,7 @@ def part_delete(request, pk):
     
     if request.method == 'POST':
         part.delete()
-        messages.success(request, 'Part recycled successfully.')
+        messages.success(request, 'Parça başarıyla geri dönüşüme gonderildi.')
         return redirect('part_list')
     
     return render(request, 'production/part_confirm_delete.html', {'part': part})
@@ -74,7 +88,7 @@ def uav_create(request):
     team_member = get_object_or_404(TeamMember, user=request.user)
     
     if team_member.team.name != 'assembly':
-        messages.error(request, 'Only assembly team members can create UAVs.')
+        messages.error(request, 'Sadece montaj ekip üyeleri İHA oluşturabilir.')
         return redirect('home')
     
     if request.method == 'POST':
@@ -83,7 +97,7 @@ def uav_create(request):
             uav = form.save(commit=False)
             uav.assembled_by = team_member
             uav.save()
-            messages.success(request, 'UAV assembled successfully.')
+            messages.success(request, 'İHA basarıyla montajlandı.')
             return redirect('home')
     else:
         form = UAVForm()
@@ -92,10 +106,13 @@ def uav_create(request):
 
 @login_required
 def uav_list(request):
-    team_member = get_object_or_404(TeamMember, user=request.user)
+    # Kullanıcının ekibini al
+    team = request.user.teammember.team.name if hasattr(request.user, 'teammember') else None
     
-    if team_member.team.name != 'assembly':
-        messages.error(request, 'Only assembly team members can view UAVs.')
-        return redirect('home')
+    # Envanter durumunu kontrol et
+    inventory_status = check_inventory_status(current_team=team)
     
-    return render(request, 'production/uav_list.html')
+    context = {
+        'inventory_status': inventory_status
+    }
+    return render(request, 'production/uav_list.html', context)

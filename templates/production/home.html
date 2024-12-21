@@ -1,126 +1,94 @@
 {% extends 'base.html' %}
-{% load production_extras %}
 
 {% block content %}
-<h2>Welcome, {{ user.username }}</h2>
-<p>Team: {{ team_member.team.get_name_display }}</p>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>{{ team_member.get_team_display }}</h2>
+        </div>
+    </div>
 
-{% if inventory_warnings %}
-<div class="alert alert-warning">
-    <h4>Envanter Uyarıları:</h4>
-    <ul>
-        {% for warning in inventory_warnings %}
-            <li>{{ warning }}</li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
-
-{% if team_member.team.name == 'assembly' %}
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Envanter Durumu</h3>
-            {% for uav_type, counts in part_counts.items %}
-            <div class="card mb-3">
-                <div class="card-header">
-                    {{ uav_type|upper }}
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <h5>Kanat</h5>
-                            <p>{{ counts.wing }} adet</p>
-                        </div>
-                        <div class="col-md-3">
-                            <h5>Gövde</h5>
-                            <p>{{ counts.body }} adet</p>
-                        </div>
-                        <div class="col-md-3">
-                            <h5>Kuyruk</h5>
-                            <p>{{ counts.tail }} adet</p>
-                        </div>
-                        <div class="col-md-3">
-                            <h5>Aviyonik</h5>
-                            <p>{{ counts.avionics }} adet</p>
+    <!-- Envanter Uyarıları -->
+    {% if inventory_status %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-bell me-2"></i>Üretim Uyarıları
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for uav_type, status in inventory_status.items %}
+                                {% if status.warnings %}
+                                    <div class="col-md-6 col-lg-3 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0">{{ uav_type|upper }}</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                {% for warning in status.warnings %}
+                                                    <div class="alert alert-{{ warning.type }} py-2 mb-2">
+                                                        {{ warning.message }}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-            
-            <div class="mt-4">
-                <a href="{% url 'uav_create' %}" class="btn btn-primary">Yeni UAV Montajı</a>
-                <a href="{% url 'uav_list' %}" class="btn btn-secondary">UAV Listesi</a>
-            </div>
         </div>
-    </div>
-{% else %}
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Ürettiğiniz Parçalar</h3>
-            <div class="mb-3">
-                <a href="{% url 'part_create' %}" class="btn btn-primary">Yeni Parça Üret</a>
-            </div>
-            <table class="table table-striped" id="partsTable">
-                <thead>
-                    <tr>
-                        <th>Seri No</th>
-                        <th>UAV Tipi</th>
-                        <th>Üretim Tarihi</th>
-                        <th>Durum</th>
-                        <th>İşlemler</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
-{% endif %}
-{% endblock %}
+    {% endif %}
 
-{% block extra_js %}
-<script>
-    $(document).ready(function() {
-        {% if not team_member.team.name == 'assembly' %}
-            $('#partsTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '/api/parts/datatable_data/',
-                    type: 'GET',
-                    dataSrc: 'data'
-                },
-                columns: [
-                    { data: 'serial_number' },
-                    { data: 'uav_type' },
-                    { data: 'production_date' },
-                    { 
-                        data: 'is_used',
-                        render: function(data, type, row) {
-                            return data ? '<span class="badge bg-success">Kullanıldı</span>' 
-                                      : '<span class="badge bg-warning">Stokta</span>';
-                        }
-                    },
-                    {
-                        data: null,
-                        render: function(data, type, row) {
-                            if (!row.is_used) {
-                                return '<form method="post" action="/production/parts/' + row.id + '/delete/" style="display: inline;">' +
-                                       '{% csrf_token %}' +
-                                       '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Bu parçayı geri dönüşüme göndermek istediğinizden emin misiniz?\')">' +
-                                       '<i class="fas fa-recycle"></i> Geri Dönüşüm</button></form>';
-                            }
-                            return '';
-                        }
-                    }
-                ],
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
-                },
-                order: [[2, 'desc']]  // Üretim tarihine göre sırala
-            });
+    <!-- Hızlı İşlemler -->
+    <div class="row">
+        {% if team_member.team.name == 'assembly' %}
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plane fa-3x mb-3 text-primary"></i>
+                        <h5 class="card-title">İHA Yönetimi</h5>
+                        <p class="card-text">İHA montaj ve takip işlemleri</p>
+                        <a href="{% url 'uav_list' %}" class="btn btn-primary">
+                            İHA Listesi
+                        </a>
+                    </div>
+                </div>
+            </div>
         {% endif %}
-    });
-</script>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-cogs fa-3x mb-3 text-info"></i>
+                    <h5 class="card-title">Parça Yönetimi</h5>
+                    <p class="card-text">Parça listesi ve detayları</p>
+                    <a href="{% url 'part_list' %}" class="btn btn-info">
+                        Parça Listesi
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if not team_member.team.name == 'assembly' %}
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus-circle fa-3x mb-3 text-success"></i>
+                        <h5 class="card-title">Yeni Parça</h5>
+                        <p class="card-text">Yeni parça üretimi</p>
+                        <a href="{% url 'part_create' %}" class="btn btn-success">
+                            Parça Üret
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

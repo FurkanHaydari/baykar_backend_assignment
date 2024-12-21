@@ -1,38 +1,69 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Parça Listesi</h2>
-    
-    {% if user.teammember.team.name == 'assembly' %}
-        <div class="alert alert-info">
-            Montaj ekibi olarak tüm parçaları görebilirsiniz.
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
         </div>
     {% endif %}
 
-    <div class="mb-3">
-        {% if not user.teammember.team.name == 'assembly' %}
-            <a href="{% url 'part_create' %}" class="btn btn-primary">Yeni Parça Üret</a>
-        {% endif %}
-    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Parça Listesi</h2>
+            
+            <!-- Envanter Uyarıları -->
+            <div class="inventory-status mb-4">
+                {% for uav_type, status in inventory_status.items %}
+                    {% if status.warnings %}
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">{{ uav_type|upper }} Parça Durumu</h6>
+                            </div>
+                            <div class="card-body">
+                                {% for warning in status.warnings %}
+                                    <div class="alert alert-{{ warning.type }} mb-2 py-2">
+                                        {{ warning.message }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-    <table class="table table-striped" id="partsTable">
-        <thead>
-            <tr>
-                <th>Seri No</th>
-                <th>UAV Tipi</th>
-                <th>Parça Tipi</th>
-                <th>Üretim Tarihi</th>
-                <th>Üretici</th>
-                <th>Durum</th>
+            <div class="mb-3">
                 {% if not user.teammember.team.name == 'assembly' %}
-                    <th>İşlemler</th>
+                    <a href="{% url 'part_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Yeni Parça Üret
+                    </a>
                 {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped" id="partsTable">
+                    <thead>
+                        <tr>
+                            <th>Seri No</th>
+                            <th>İHA Tipi</th>
+                            <th>Parça Tipi</th>
+                            <th>Üretim Tarihi</th>
+                            <th>Üretici</th>
+                            <th>Durum</th>
+                            {% if not user.teammember.team.name == 'assembly' %}
+                                <th>İşlemler</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
