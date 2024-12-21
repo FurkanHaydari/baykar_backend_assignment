@@ -52,6 +52,7 @@ class UAV(models.Model):
         return f"{self.get_type_display()} ({self.serial_number})"
     
     class Meta:
+        unique_together = ('type', 'serial_number')
         verbose_name = 'İHA'
         verbose_name_plural = 'İHA\'lar'
     
