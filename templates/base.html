@@ -40,7 +40,10 @@
                             <span class="nav-link">{{ user.teammember.team.get_name_display }}</span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Çıkış Yap</a>
+                            <form method="post" action="{% url 'logout' %}" class="nav-item">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link">Çıkış Yap</button>
+                            </form>
                         </li>
                     {% else %}
                         <li class="nav-item">
