@@ -60,7 +60,7 @@
         {% if user.teammember.team.name == 'assembly' %}
             <div class="mb-3">
                 <button class="btn btn-primary" onclick="showCreateModal()">
-                    <i class="fas fa-plus"></i> Yeni UAV Oluştur
+                    <i class="fas fa-plus"></i> Yeni İHA Oluştur
                 </button>
             </div>
 
@@ -69,7 +69,7 @@
                     <thead>
                         <tr>
                             <th>Seri No</th>
-                            <th>UAV Tipi</th>
+                            <th>İHA Tipi</th>
                             <th>Montaj Tarihi</th>
                             <th>Montaj Ekibi</th>
                             <th>İşlemler</th>
@@ -92,14 +92,14 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Yeni UAV Oluştur</h5>
+                <h5 class="modal-title">Yeni İHA Oluştur</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="uavForm">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="uavType" class="form-label">UAV Tipi</label>
+                        <label for="uavType" class="form-label">İHA Tipi</label>
                         <select class="form-select" id="uavType" name="type" required>
                             <option value="">Seçiniz...</option>
                             <option value="tb2">TB2</option>
@@ -160,7 +160,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="partsModalLabel">UAV Parçaları</h5>
+                <h5 class="modal-title" id="partsModalLabel">İHA Parçaları</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -211,7 +211,7 @@
             order: [[0, 'desc']]
         });
 
-        // UAV tipi seçildiğinde parça seçimlerini göster
+        // İHA tipi seçildiğinde parça seçimlerini göster
         $('#uavType').change(function() {
             if ($(this).val()) {
                 $('#partSelections').show();
@@ -302,7 +302,7 @@
             success: function(response) {
                 $('#createModal').modal('hide');
                 $('#uavTable').DataTable().ajax.reload();
-                toastr.success('UAV başarıyla oluşturuldu');
+                toastr.success('İHA başarıyla oluşturuldu');
             },
             error: function(xhr) {
                 var error = xhr.responseJSON ? xhr.responseJSON.error : 'Bir hata oluştu';
