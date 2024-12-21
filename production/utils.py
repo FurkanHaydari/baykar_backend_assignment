@@ -6,7 +6,7 @@ def check_inventory_status(current_team=None):
     Her ekibin üretim durumunu diğer ekiplerle karşılaştırır.
     
     Args:
-        current_team: Mevcut ekip (wing, body, tail, avionics, assembly)
+        current_team: Mevcut ekip (kanat, gövde, kuyruk, aviyonik, montaj ekibi)
         
     Returns:
         dict: Her İHA tipi için parça durumu ve uyarılar
@@ -77,16 +77,10 @@ def check_inventory_status(current_team=None):
         # Montaj ekibi için İHA üretim durumu
         if is_assembly and min(part_counts.values()) > 0:
             min_count = min(part_counts.values())
-            needed_parts = []
-            for part_type, count in part_counts.items():
-                if count == min_count:
-                    needed_parts.append(PART_NAMES[part_type])
-            
-            if needed_parts:
-                warnings.append({
-                    'type': 'info',
-                    'message': f"{min_count} adet İHA üretmek için {', '.join(needed_parts)} parçaları hazır."
-                })
+            warnings.append({
+                'type': 'info',
+                'message': f"{min_count} adet {uav_type.upper()} üretmek için tüm parçalar hazır."
+            })
         
         if warnings:  # Sadece uyarı varsa status'e ekle
             inventory_status[uav_type] = {
