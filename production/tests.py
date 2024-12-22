@@ -137,3 +137,54 @@ class ProductionTests(TestCase):
         
         # Parçanın silindiğini kontrol et
         self.assertFalse(Part.objects.filter(id=part.id).exists())
+
+    def test_team_permissions(self):
+        """Takım yetkileri testi"""
+        # Takım üyesi olmayan kullanıcı
+        no_team_user = User.objects.create_user(username='no_team_user', password='user123')
+        self.client.login(username='no_team_user', password='user123')
+        
+        # Parça oluşturma denemesi
+        response = self.client.post(reverse('part_create'), {
+            'type': 'wing',
+            'uav_type': 'tb2',
+            'serial_number': 'WING001'
+        })
+        self.assertEqual(response.status_code, 404)  # TeamMember bulunamadı
+        
+        # Montaj denemesi
+        response = self.client.post(reverse('uav_create'), {
+            'type': 'tb2',
+            'serial_number': 'TB2001'
+        })
+        self.assertEqual(response.status_code, 404)  # TeamMember bulunamadı
+        
+    def test_cross_team_operations(self):
+        """Takımlar arası işlem testi"""
+        # Kanat takımı gövde parçası oluşturmayı denemeli
+        self.client.login(username='wing_user', password='user123')
+        response = self.client.post(reverse('part_create'), {
+            'type': 'body',
+            'uav_type': 'tb2',
+            'serial_number': 'BODY001'
+        })
+        self.assertEqual(response.status_code, 403)  # İzin hatası
+        
+        # Gövde takımı kanat parçası silmeyi denemeli
+        wing = Part.objects.create(
+            type='wing',
+            uav_type='tb2',
+            serial_number='WING001',
+            produced_by=self.wing_member
+        )
+        self.client.login(username='body_user', password='user123')
+        response = self.client.post(reverse('part_delete', kwargs={'pk': wing.id}))
+        self.assertEqual(response.status_code, 404)  # Parça bulunamadı (çünkü type=body filtresi var)
+        
+        # Montaj takımı dışındaki takımlar montaj yapmayı denemeli
+        self.client.login(username='wing_user', password='user123')
+        response = self.client.post(reverse('uav_create'), {
+            'type': 'tb2',
+            'serial_number': 'TB2001'
+        })
+        self.assertEqual(response.status_code, 302)  # Ana sayfaya yönlendirildi (messages ile)
