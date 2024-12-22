@@ -5,9 +5,7 @@ export DJANGO_SETTINGS_MODULE=uav_production.settings
 
 # Veritabanının hazır olmasını bekle
 echo "Waiting for database..."
-while ! nc -z db 5432; do
-  sleep 0.1
-done
+python manage.py wait_for_db
 echo "Database is up!"
 
 # Migrasyonları uygula
