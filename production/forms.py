@@ -5,11 +5,21 @@ class PartForm(forms.ModelForm):
     class Meta:
         model = Part
         fields = ['type', 'uav_type', 'serial_number']
+        labels = {
+            'type': 'Parça Tipi',
+            'uav_type': 'İHA Tipi',
+            'serial_number': 'Seri Numarası'
+        }
+        widgets = {
+            'type': forms.HiddenInput(),
+            'uav_type': forms.Select(attrs={'class': 'form-select'}),
+            'serial_number': forms.TextInput(attrs={'class': 'form-control'})
+        }
         
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, team_name=None, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs['class'] = 'form-control'
+        if team_name:
+            self.initial['type'] = team_name
 
 class UAVForm(forms.ModelForm):
     class Meta:

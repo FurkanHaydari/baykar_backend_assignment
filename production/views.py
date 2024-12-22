@@ -59,7 +59,7 @@ def part_create(request):
     team_member = get_object_or_404(TeamMember, user=request.user)
     
     if request.method == 'POST':
-        form = PartForm(request.POST)
+        form = PartForm(request.POST, team_name=team_member.team.name)
         if form.is_valid():
             # Kullanıcının kendi takımının parçası dışında parça oluşturmasını engelle
             if form.cleaned_data['type'] != team_member.team.name:
@@ -71,9 +71,12 @@ def part_create(request):
             messages.success(request, 'Part created successfully.')
             return redirect('part_list')
     else:
-        form = PartForm()
+        form = PartForm(team_name=team_member.team.name)
     
-    return render(request, 'production/part_form.html', {'form': form})
+    return render(request, 'production/part_form.html', {
+        'form': form,
+        'team_name': team_member.team.name  # Template'de göstermek için
+    })
 
 @login_required
 def part_delete(request, pk):
