@@ -60,6 +60,18 @@ class ProductionTests(TestCase):
             serial_number='BODY001',
             produced_by=self.body_member
         )
+        tail = Part.objects.create(
+            type='tail',
+            uav_type='tb2',
+            serial_number='TAIL001',
+            produced_by=self.body_member
+        )
+        avionics = Part.objects.create(
+            type='avionics',
+            uav_type='tb2',
+            serial_number='AVIONICS001',
+            produced_by=self.body_member
+        )
         
         self.client.login(username='assembly_user', password='user123')
         
@@ -69,13 +81,19 @@ class ProductionTests(TestCase):
             'serial_number': 'TB2001',
             'wing': wing.id,
             'body': body.id,
+            'tail': tail.id,
+            'avionics': avionics.id,
         })
         
         # Parçaların kullanımda olduğunu kontrol et
         wing.refresh_from_db()
         body.refresh_from_db()
+        tail.refresh_from_db()
+        avionics.refresh_from_db()
         self.assertTrue(wing.is_used)
         self.assertTrue(body.is_used)
+        self.assertTrue(tail.is_used)
+        self.assertTrue(avionics.is_used)
         
     def test_inventory_status(self):
         """Envanter durumu testi"""

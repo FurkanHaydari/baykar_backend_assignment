@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from accounts.models import Team, TeamMember
 
 class Part(models.Model):
@@ -59,12 +61,20 @@ class UAV(models.Model):
     def save(self, *args, **kwargs):
         # Validate that all parts belong to the same UAV type
         parts = [self.wing, self.body, self.tail, self.avionics]
-        if not all(part.uav_type == self.type for part in parts):
+        if not all(part.uav_type == self.type for part in parts if part):
             raise ValueError("Tüm parçalar aynı İHA tipine ait olmalıdır")
         
-        # Mark all parts as used
-        for part in parts:
-            part.is_used = True
-            part.save()
-        
         super().save(*args, **kwargs)
+
+@receiver(post_save, sender=UAV)
+def mark_parts_as_used(sender, instance, created, **kwargs):
+    if created:
+        # Parçaları kullanılmış olarak işaretle
+        instance.wing.is_used = True
+        instance.wing.save()
+        instance.body.is_used = True
+        instance.body.save()
+        instance.tail.is_used = True
+        instance.tail.save()
+        instance.avionics.is_used = True
+        instance.avionics.save()

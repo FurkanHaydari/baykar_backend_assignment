@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.contrib import messages
@@ -60,9 +61,12 @@ def part_create(request):
     if request.method == 'POST':
         form = PartForm(request.POST)
         if form.is_valid():
+            # Kullanıcının kendi takımının parçası dışında parça oluşturmasını engelle
+            if form.cleaned_data['type'] != team_member.team.name:
+                return HttpResponseForbidden("Bu parçayı oluşturma yetkiniz yok.")
+            
             part = form.save(commit=False)
             part.produced_by = team_member
-            part.type = team_member.team.name
             part.save()
             messages.success(request, 'Part created successfully.')
             return redirect('part_list')
@@ -96,6 +100,19 @@ def uav_create(request):
         if form.is_valid():
             uav = form.save(commit=False)
             uav.assembled_by = team_member
+            
+            # Parçaları kullanılmış olarak işaretle
+            form.cleaned_data['wing'].is_used = True
+            form.cleaned_data['wing'].save()
+            form.cleaned_data['body'].is_used = True
+            form.cleaned_data['body'].save()
+            if 'tail' in form.cleaned_data:
+                form.cleaned_data['tail'].is_used = True
+                form.cleaned_data['tail'].save()
+            if 'avionics' in form.cleaned_data:
+                form.cleaned_data['avionics'].is_used = True
+                form.cleaned_data['avionics'].save()
+            
             uav.save()
             messages.success(request, 'İHA basarıyla montajlandı.')
             return redirect('home')

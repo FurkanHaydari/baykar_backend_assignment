@@ -4,7 +4,7 @@ from .models import Part, UAV
 class PartForm(forms.ModelForm):
     class Meta:
         model = Part
-        fields = ['uav_type', 'serial_number']
+        fields = ['type', 'uav_type', 'serial_number']
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
